@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-wiki"
+version = "0.1.0"
+description = "Incremental knowledge base system powered by LLM - A Python implementation of Karpathy's LLM Wiki concept"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "daoistbro", email = "daoistbrother@outlook.com"}
+]
+keywords = ["llm", "wiki", "knowledge-base", "rag", "ai", "obsidian"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "python-frontmatter>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0",
+    "ruff>=0.1.0",
+]
+github = [
+    "PyGithub>=2.0.0",
+]
+
+[project.scripts]
+llm-wiki = "llm_wiki.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/daoistbro/llm-wiki"
+Documentation = "https://github.com/daoistbro/llm-wiki#readme"
+Repository = "https://github.com/daoistbro/llm-wiki"
+Issues = "https://github.com/daoistbro/llm-wiki/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310", "py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
