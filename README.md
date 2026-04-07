@@ -1,6 +1,5 @@
 # 🧠 LLM Wiki
 
-[![PyPI version](https://badge.fury.io/py/llm-wiki.svg)](https://badge.fury.io/py/llm-wiki)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
@@ -8,7 +7,14 @@
 >
 > A Python implementation of Karpathy's [LLM Wiki concept](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
 
-## 🎯 What is LLM Wiki?
+## 🌟 Features
+
+- 🧠 **Multi-LLM Support**: OpenAI, Anthropic Claude, Ollama (本地模型), OpenAI-Compatible APIs
+- 📝 **Obsidian Compatible**: 双向链接 [[Wiki Links]]，模板系统
+- 🔌 **Easy Configuration**: 环境变量 或 YAML 配置文件
+- 📦 **Zero Config**: 开箱即用，自动识别配置
+- 🔗 **Bi-directional Links**: Obsidian 风格的 Wiki 链接
+- 📊 **Auto Index**: 自动生成索引和健康检查
 
 **Traditional RAG vs LLM Wiki:**
 
@@ -48,96 +54,206 @@
 └─────────────────────────────────────────────────────────┘
 ```
 
+## ⚡ Quick Start
+
+### 1. Install with LLM support
+
+```bash
+# Basic installation
+pip install llm-wiki
+
+# With OpenAI support
+pip install "llm-wiki[openai]"
+
+# With all LLM providers (OpenAI + Claude + Ollama)
+pip install "llm-wiki[all]"
+```
+
+### 2. Configure your LLM API
+
+**方法 1: 环境变量 (.env 文件)**
+
+```bash
+cd your-wiki
+
+# Create .env file
+LLM_PROVIDER=openai
+LLM_API_KEY=sk-your-key-here
+LLM_MODEL=gpt-4
+```
+
+**方法 2: YAML 配置文件**
+
+```yaml
+# llm-wiki.yaml
+llm:
+  provider: openai
+  api_key: ${OPENAI_API_KEY}
+  model: gpt-4
+```
+
+**支持的大模型**:
+
+| 提供商 | 环境变量 | 示例模型 |
+|--------|----------|----------|
+| OpenAI | `LLM_PROVIDER=openai` | `gpt-4`, `gpt-4o` |
+| Anthropic | `LLM_PROVIDER=anthropic` | `claude-sonnet-4-20250514` |
+| Ollama (本地) | `LLM_PROVIDER=ollama` | `llama3.2`, `mistral` |
+| OpenAI-Compatible | `LLM_PROVIDER=openai-compatible` | 任意兼容的模型 |
+
+### 3. Initialize and Use
+
+```bash
+# Initialize wiki
+llm-wiki init my-knowledge
+
+# Add documents
+cp ~/Downloads/paper.pdf my-knowledge/raw/
+
+# Scan for unprocessed sources
+llm-wiki scan
+
+# Process with LLM (自动使用配置的 API)
+python process_with_llm.py
+```
+
+### 4. Open in Obsidian
+
+```python
+from llm_wiki import convert_llmwiki_to_obsidian
+
+# 转换为 Obsidian 兼容结构
+convert_llmwiki_to_obsidian(
+    wiki_path="my-knowledge",
+    vault_path="~/obsidian-vault/llm-wiki"
+)
+
+# 然后在 Obsidian 中打开 ~/obsidian-vault/llm-wiki
+```
+
+## 🔌 LLM API Configuration
+
+### 方式一：环境变量
+
+```bash
+# .env 文件
+LLM_PROVIDER=openai
+LLM_API_KEY=sk-...
+LLM_MODEL=gpt-4
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_TEMPERATURE=0.7
+LLM_MAX_TOKENS=4096
+```
+
+### 方式二：YAML 配置文件
+
+```yaml
+# llm-wiki.yaml
+llm:
+  provider: anthropic
+  api_key: ${ANTHROPIC_API_KEY}
+  model: claude-sonnet-4-20250514
+  temperature: 0.7
+  max_tokens: 4096
+
+wiki:
+  base_dir: .
+  raw_dir: raw
+  wiki_dir: wiki
+
+obsidian:
+  enabled: true
+  vault_path: ~/obsidian-vault
+```
+
+### 方式三：代码配置
+
+```python
+from llm_wiki import LLMWiki, create_provider, setup_obsidian_vault
+
+# 使用 OpenAI
+llm = create_provider({
+    "provider": "openai",
+    "api_key": "sk-...",
+    "model": "gpt-4"
+})
+
+# 使用 Claude
+llm = create_provider({
+    "provider": "anthropic",
+    "api_key": "sk-ant-...",
+    "model": "claude-sonnet-4-20250514"
+})
+
+# 使用本地模型 (Ollama)
+llm = create_provider({
+    "provider": "ollama",
+    "model": "llama3.2",
+    "base_url": "http://localhost:11434"
+})
+```
+
+## 🚀 Full Example
+
+```python
+from llm_wiki import LLMWiki, create_provider, setup_obsidian_vault
+
+# 1. 设置 LLM
+llm = create_provider({
+    "provider": "openai",
+    "model": "gpt-4"
+})
+
+# 2. 初始化 Wiki
+wiki = LLMWiki("my-knowledge")
+
+# 3. 使用 LLM 处理文档
+for source in wiki.get_unprocessed_sources():
+    # 提取实体
+    entities = llm.extract_entities(source.content)
+    
+    # 提取概念
+    concepts = llm.extract_concepts(source.content)
+    
+    # 生成摘要
+    summary = llm.summarize(source.content)
+    
+    # 创建 Wiki 页面
+    for entity in entities:
+        wiki.create_page("entity", entity["name"], entity["description"])
+    
+    for concept in concepts:
+        wiki.create_page("concept", concept["name"], concept["description"])
+    
+    wiki.create_page("summary", source.metadata["name"], summary)
+    wiki.mark_source_processed(source)
+    wiki.append_log("ingest", f"Processed: {source.metadata['name']}")
+
+# 4. 更新索引
+wiki.update_index()
+
+# 5. 健康检查
+issues = wiki.lint()
+for issue in issues:
+    print(f"[{issue['severity']}] {issue['message']}")
+
+# 6. 设置 Obsidian 集成 (可选)
+setup_obsidian_vault("my-knowledge")
+```
+
 ## 📦 Installation
 
 ```bash
-# From PyPI (coming soon)
+# Basic installation
 pip install llm-wiki
 
 # From source
 git clone https://github.com/daoistbro/llm-wiki.git
 cd llm-wiki
-pip install -e .
+pip install -e ".[all]"
 ```
 
-## 🚀 Quick Start
-
-### 1. Initialize a Wiki
-
-```bash
-llm-wiki init my-knowledge-base
-cd my-knowledge-base
-```
-
-This creates:
-
-```
-my-knowledge-base/
-├── raw/                    # Source documents
-│   └── attachments/        # Images & files
-├── wiki/                   # Compiled knowledge
-│   ├── entities/           # People, organizations, projects
-│   ├── concepts/           # Ideas, methods, technologies
-│   ├── summaries/          # Document summaries
-│   ├── index.md            # Master index
-│   └── log.md              # Activity log
-└── AGENTS.md               # Schema configuration
-```
-
-### 2. Add Source Documents
-
-```bash
-# Copy documents to raw/
-cp ~/Downloads/paper.pdf raw/
-cp ~/Notes/meeting-notes.md raw/
-```
-
-### 3. Check Status
-
-```bash
-llm-wiki status
-```
-
-Output:
-
-```
-📊 Wiki Status
-   Base Directory: my-knowledge-base
-   Processed Sources: 0
-   Pending Sources: 2
-   Wiki Pages:
-     - Entities: 0
-     - Concepts: 0
-     - Summaries: 0
-     - Total: 0
-```
-
-### 4. (LLM Integration) Process Sources
-
-The Python library provides the infrastructure. For intelligent processing, integrate with your LLM:
-
-```python
-from llm_wiki import LLMWiki
-
-wiki = LLMWiki("my-knowledge-base")
-
-# Get unprocessed sources
-for source in wiki.get_unprocessed_sources():
-    # Your LLM extracts knowledge
-    entities = your_llm.extract_entities(source.content)
-    concepts = your_llm.extract_concepts(source.content)
-    summary = your_llm.summarize(source.content)
-    
-    # Create wiki pages
-    for entity in entities:
-        wiki.create_page("entity", entity.name, entity.content)
-    
-    wiki.create_page("summary", source.name, summary)
-    wiki.mark_processed(source)
-    wiki.log("ingest", f"Processed: {source.name}")
-
-wiki.update_index()
-```
+## 🎯 What is LLM Wiki?
 
 ## 📖 Core Concepts
 

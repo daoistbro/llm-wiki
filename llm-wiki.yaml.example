@@ -1,0 +1,56 @@
+# LLM Wiki Configuration Example
+
+# LLM Provider Configuration
+llm:
+  # Provider: openai, anthropic, ollama, openai-compatible
+  provider: openai
+
+  # API Key (can use environment variable: ${OPENAI_API_KEY})
+  api_key: ${OPENAI_API_KEY}
+
+  # Model to use
+  model: gpt-4
+
+  # Base URL (optional, for custom endpoints)
+  base_url: https://api.openai.com/v1
+
+  # Generation parameters
+  temperature: 0.7
+  max_tokens: 4096
+  timeout: 60
+
+# Wiki Configuration
+wiki:
+  base_dir: .
+  raw_dir: raw
+  wiki_dir: wiki
+  index_file: index.md
+  log_file: log.md
+  schema_file: AGENTS.md
+
+# Obsidian Integration
+obsidian:
+  enabled: true
+  vault_path: ~/obsidian-vault
+  sync_interval: 300  # seconds
+  templates_dir: templates
+  attachments_dir: attachments
+  create_backlinks: true
+  use_aliases: true
+
+# Processing Configuration
+processing:
+  # Auto-process new sources
+  auto_process: false
+
+  # Batch size for processing
+  batch_size: 10
+
+  # Retry failed extractions
+  retry_failed: true
+  max_retries: 3
+
+# Logging
+logging:
+  level: INFO
+  file: llm-wiki.log
